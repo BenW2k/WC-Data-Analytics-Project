@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup as bs
 import requests
-import pandas
+import pandas as pd
 import secret
 
 player_list = []
@@ -12,15 +12,21 @@ def get_soup(url):
     soup = bs(r.text, 'html.parser')
     return soup
 
-def get_reviews(soup):
-    players = soup.find_all('div', {'data-hook': 'review'})
+def get_summary_player_data(soup):
+# Used to get the data from the first set of data: the summary tab
+    players = soup.find_all('div', {'id': 'statistics-table-summary'})
     try: 
-        for item in players:
+        for data in players:
             player = {
-            'product': soup.title.text.replace('Amazon.co.uk:Customer reviews:', '').strip(),
-            'title': item.find('a', {'data-hook': 'review-title'}).text.strip(),
-            'rating': float(item.find('i', {'data-hook': 'review-star-rating'}).text.replace('out of 5 stars', '').strip()),
-            'body': item.find('span', {'data-hook': 'review-body'}).text.strip(),
+            'name': data.find('span', {'class': 'iconize iconize-icon-left'}).text.strip(),
+            'nationality': data.find('span', {'class': 'team-name'}).text.strip(),
+            'goals': int(data.find('td', {'class': 'goal'}).strip()),
+            'yellow cards': data.find('td', {'class': 'yellowCard'}).text.strip(),
+            'red cards': data.find('td', {'class': 'redCard'}).text.strip(),
+            'shots per game': float(data.find('td', {'class': 'shotsPerGame'}).text.split()),
+            'passing%': float(data.find('td', {'class': 'passSuccess'}).text.split()),
+            'aerials won': float(data.find('td', {'class': 'aerialWonPerGame'}).text.split()),
+            'MotM awards': int(data.find('td', {'class': 'manOfTheMatch'}).text.split())
             }
             player_list.append(player)
     except:
